@@ -78,7 +78,7 @@ long long board_static_ddr(struct ddr_info *priv)
 	return 0x100000000UL;
 }
 
-long long _init_ddr(void)
+long long init_ddr(void)
 {
 	int spd_addr[] = { NXP_SPD_EEPROM0 };
 	struct ddr_info info;

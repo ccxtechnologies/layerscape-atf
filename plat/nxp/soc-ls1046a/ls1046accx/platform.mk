@@ -13,9 +13,9 @@ POVDD_ENABLE	:=	no
  # DDR Compilation Configs
 NUM_OF_DDRC	:=	1
 DDRC_NUM_DIMM	:=	1
-DDRC_NUM_CS	:=	4
+DDRC_NUM_CS	:=	1
 DDR_ECC_EN	:=	yes
-CONFIG_STATIC_DDR := 0
+CONFIG_STATIC_DDR := 1
 
  # On-Board Flash Details
 QSPI_FLASH_SZ	:=	0x40000000
