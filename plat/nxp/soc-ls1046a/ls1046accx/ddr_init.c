@@ -1,29 +1,34 @@
 /*
- * Copyright 2018 NXP
+ * Copyright 2021 CCX Technologies
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
- * Author York Sun <york.sun@nxp.com>
+ * Charles Eidsness <charles@ccxtechnologies.com>
  */
 
-#include <platform_def.h>
+#include <assert.h>
+#include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <debug.h>
-#include <errno.h>
 #include <string.h>
-#include <io.h>
+
+#include <common/debug.h>
 #include <ddr.h>
-#include <utils.h>
-#include <utils_def.h>
 #include <errata.h>
+#include <lib/utils.h>
+
+#include "plat_common.h"
+#include <platform_def.h>
 
 const struct ddr_cfg_regs static_1500 = {
 	.cs[0].bnds = 0xFF,
 	.cs[0].config = 0x80010322,
 	.cs[0].config_2 = 0x00,
+	.sdram_cfg[0] = 0x45208000,
+	.sdram_cfg[1] = 0x00401070,
+	.sdram_cfg[2] = 0x00,
 	.timing_cfg[0] = 0xFA770018,
 	.timing_cfg[1] = 0xE3EA9245,
 	.timing_cfg[2] = 0x00595197,
@@ -32,9 +37,6 @@ const struct ddr_cfg_regs static_1500 = {
 	.timing_cfg[5] = 0x04401400,
 	.timing_cfg[7] = 0x26640000,
 	.timing_cfg[8] = 0x00446A00,
-	.sdram_cfg[0] = 0x45208000,
-	.sdram_cfg[1] = 0x00401070,
-	.sdram_cfg[2] = 0x00,
 	.dq_map[0] = 0x32BB4458,
 	.dq_map[1] = 0xD6336C2C,
 	.dq_map[2] = 0x0E4D4C0C,
@@ -59,11 +61,11 @@ const struct ddr_cfg_regs static_1500 = {
 	.interval = 0x1FFE07FF,
 	.zq_cntl = 0x8A090705,
 	.clk_cntl = 0x02800000,
+	.cdr[0] = 0x80080000,
+	.cdr[1] = 0x80,
 	.wrlvl_cntl[0] = 0x86550609,
 	.wrlvl_cntl[1] = 0x0A0B0B0D,
 	.wrlvl_cntl[2] = 0x0D0D0D0D,
-	.cdr[0] = 0x80080000,
-	.cdr[1] = 0x80,
 	.err_disable = 0x0100,
 	.err_int_en = 0x1D,
 	.debug[28] = 0x4e,
@@ -84,7 +86,10 @@ long long _init_ddr(void)
 	long long dram_size;
 
 	zeromem(&sys, sizeof(sys));
-	get_clocks(&sys);
+	if (get_clocks(&sys)) {
+		ERROR("System clocks are not set\n");
+		assert(0);
+	}
 	debug("platform clock %lu\n", sys.freq_platform);
 	debug("DDR PLL1 %lu\n", sys.freq_ddr_pll0);
 	debug("DDR PLL2 %lu\n", sys.freq_ddr_pll1);
