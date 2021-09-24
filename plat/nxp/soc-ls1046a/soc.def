@@ -78,7 +78,9 @@ BL2_BASE	:=	0x10000000
 # Input to CST create_hdr_isbc tool
 BL2_HDR_LOC_HDR	?=	$(shell echo $$(( $(OCRAM_START_ADDR) + $(OCRAM_SIZE) - $(NXP_ROM_RSVD) - $(CSF_HDR_SZ))))
 # Covert to HEX to be used by create_pbl.mk
-BL2_HDR_LOC	:=	$$(echo "obase=16; ${BL2_HDR_LOC_HDR}" | bc)
+
+# Header location must be 0x10015000 or secure boot fails
+BL2_HDR_LOC	:= 0x10015000
 
 # SoC ERRATAS to be enabled
 #
