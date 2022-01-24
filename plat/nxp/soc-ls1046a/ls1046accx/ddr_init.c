@@ -22,7 +22,7 @@
 #include "plat_common.h"
 #include <platform_def.h>
 
-const struct ddr_cfg_regs static_1500 = {
+const struct ddr_cfg_regs static_4g_2100 = {
 	.cs[0].bnds = 0xFF,
 	.cs[0].config = 0x80010322,
 	.cs[0].config_2 = 0x00,
@@ -74,7 +74,21 @@ const struct ddr_cfg_regs static_1500 = {
 
 long long board_static_ddr(struct ddr_info *priv)
 {
-	memcpy(&priv->ddr_reg, &static_1500, sizeof(struct ddr_cfg_regs));
+	int ret;
+	struct ddr4_spd spd;
+	unsigned char mpart[20] = {0};
+
+	ret = read_spd(NXP_SPD_EEPROM0, &spd, sizeof(spd));
+	if (ret) {
+		ERROR("Failed to read DIMM SPD, assuming 4G module.\n");
+	} else {
+		memcpy(mpart, &(spd.mpart), sizeof(mpart) - 1);
+		NOTICE("RAM Part Number: %s\n", mpart);
+		NOTICE("RAM Manufacturer Module ID: 0x%x%x\n", spd.mmid_msb, spd.mmid_lsb);
+		NOTICE("RAM Manufacturer DRAM ID: 0x%x%x\n", spd.dmid_msb, spd.dmid_lsb);
+	}
+
+	memcpy(&priv->ddr_reg, &static_4g_2100, sizeof(struct ddr_cfg_regs));
 	return 0x100000000UL;
 }
 
