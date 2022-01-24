@@ -71,25 +71,91 @@ const struct ddr_cfg_regs static_4g_2100 = {
 	.debug[28] = 0x4e,
 };
 
+const struct ddr_cfg_regs static_8g_2100 = {
+	.cs[0].bnds = 0x1FF,
+	.cs[0].config = 0x80010322,
+	.cs[0].config_2 = 0x00,
+	.sdram_cfg[0] = 0x45208000,
+	.sdram_cfg[1] = 0x00401070,
+	.sdram_cfg[2] = 0x00,
+	.timing_cfg[0] = 0xFA770018,
+	.timing_cfg[1] = 0xE3EA9245,
+	.timing_cfg[2] = 0x00595197,
+	.timing_cfg[3] = 0x02101100,
+	.timing_cfg[4] = 0x00220002,
+	.timing_cfg[5] = 0x04401400,
+	.timing_cfg[7] = 0x26640000,
+	.timing_cfg[8] = 0x00446A00,
+	.dq_map[0] = 0x32BB4458,
+	.dq_map[1] = 0xD6336C2C,
+	.dq_map[2] = 0x0E4D4C0C,
+	.dq_map[3] = 0xB4000000,
+	.sdram_mode[0] = 0x01010625,
+	.sdram_mode[1] = 0x00100000,
+	.sdram_mode[2] = 0x00,
+	.sdram_mode[3] = 0x00,
+	.sdram_mode[4] = 0x00,
+	.sdram_mode[5] = 0x00,
+	.sdram_mode[6] = 0x00,
+	.sdram_mode[7] = 0x00,
+	.sdram_mode[8] = 0x0701,
+	.sdram_mode[9] = 0x08800000,
+	.sdram_mode[10] = 0x00,
+	.sdram_mode[11] = 0x00,
+	.sdram_mode[12] = 0x00,
+	.sdram_mode[13] = 0x00,
+	.sdram_mode[14] = 0x00,
+	.sdram_mode[15] = 0x00,
+	.md_cntl = 0x00,
+	.interval = 0x1FFE07FF,
+	.zq_cntl = 0x8A090705,
+	.clk_cntl = 0x02800000,
+	.cdr[0] = 0x80080000,
+	.cdr[1] = 0x80,
+	.wrlvl_cntl[0] = 0x86550609,
+	.wrlvl_cntl[1] = 0x0A0B0B0D,
+	.wrlvl_cntl[2] = 0x0D0D0D0D,
+	.err_disable = 0x0100,
+	.err_int_en = 0x1D,
+	.debug[28] = 0x4e,
+};
+
 
 long long board_static_ddr(struct ddr_info *priv)
 {
-	int ret;
+	int ret, size = 0;
 	struct ddr4_spd spd;
 	unsigned char mpart[20] = {0};
 
 	ret = read_spd(NXP_SPD_EEPROM0, &spd, sizeof(spd));
 	if (ret) {
 		ERROR("Failed to read DIMM SPD, assuming 4G module.\n");
+		size = 4;
 	} else {
 		memcpy(mpart, &(spd.mpart), sizeof(mpart) - 1);
 		NOTICE("RAM Part Number: %s\n", mpart);
-		NOTICE("RAM Manufacturer Module ID: 0x%x%x\n", spd.mmid_msb, spd.mmid_lsb);
-		NOTICE("RAM Manufacturer DRAM ID: 0x%x%x\n", spd.dmid_msb, spd.dmid_lsb);
+		NOTICE("RAM Density: 0x%x\n", spd.density_banks);
+		NOTICE("RAM Addressing: 0x%x\n", spd.addressing);
+		if ((spd.density_banks == 0x85) && (spd.addressing == 0x21)) {
+			size = 8;
+		} else {
+			size = 4;
+		}
 	}
 
-	memcpy(&priv->ddr_reg, &static_4g_2100, sizeof(struct ddr_cfg_regs));
-	return 0x100000000UL;
+	if (size == 4) {
+		NOTICE("RAM Size: 4G\n");
+		memcpy(&priv->ddr_reg, &static_4g_2100, sizeof(struct ddr_cfg_regs));
+		return 0x100000000UL;
+	} else if (size == 8) {
+		NOTICE("RAM Size: 8G\n");
+		memcpy(&priv->ddr_reg, &static_8g_2100, sizeof(struct ddr_cfg_regs));
+		return 0x200000000UL;
+	} else {
+		ERROR("Unkown RAM Size %d\n", size);
+		return 0;
+	}
+
 }
 
 long long init_ddr(void)

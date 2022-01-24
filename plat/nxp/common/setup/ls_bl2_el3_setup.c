@@ -44,9 +44,6 @@ static void populate_dram_regions_info(void)
 			dram_remain_size > NXP_DRAM0_MAX_SIZE ?
 				NXP_DRAM0_MAX_SIZE : dram_remain_size;
 
-	if (dram_regions_info.region[reg_id].size != NXP_DRAM0_SIZE)
-		NOTICE("Incorrect DRAM0 size is defined in platform_def.h\n");
-
 	dram_remain_size -= dram_regions_info.region[reg_id].size;
 	dram_regions_info.region[reg_id].size -= (NXP_SECURE_DRAM_SIZE
 						+ NXP_SP_SHRD_DRAM_SIZE);
