@@ -73,7 +73,7 @@ const struct ddr_cfg_regs static_4g_2100 = {
 
 const struct ddr_cfg_regs static_8g_2100 = {
 	.cs[0].bnds = 0x1FF,
-	.cs[0].config = 0x80010322,
+	.cs[0].config = 0x80010422,
 	.cs[0].config_2 = 0x00,
 	.sdram_cfg[0] = 0x45208000,
 	.sdram_cfg[1] = 0x00401070,
