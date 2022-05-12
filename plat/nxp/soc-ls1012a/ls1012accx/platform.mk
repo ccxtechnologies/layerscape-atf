@@ -13,7 +13,8 @@ DDRC_NUM_CS     :=      1
 # On-Board Flash Details
 QSPI_FLASH_SZ   :=      0x4000000
 
-BL2_SOURCES	+=	${BOARD_PATH}/ddr_init.c
+BL2_SOURCES	+=	${BOARD_PATH}/ddr_init.c \
+			${BOARD_PATH}/platform.c
 
 SUPPORTED_BOOT_MODE	:=	qspi
 
