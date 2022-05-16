@@ -10,4 +10,6 @@
 #include <plat_def.h>
 #include <plat_default_def.h>
 
+#define PLAT_FUSE_FIP_OFFSET 0x700000
+
 #endif /* PLATFORM_DEF_H */
