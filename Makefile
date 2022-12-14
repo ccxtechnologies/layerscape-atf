@@ -554,6 +554,10 @@ ifeq ($(ARCH),aarch64)
 endif
 endif
 
+# With binutils 2.39 it is required to build BL31 with the linker flag from below
+BL31_LDFLAGS += --no-warn-rwx-segments
+BL2_LDFLAGS  += --no-warn-rwx-segments
+
 ifeq (${ARCH},aarch64)
 BL1_CPPFLAGS += -DIMAGE_AT_EL3
 ifeq ($(BL2_AT_EL3),1)
