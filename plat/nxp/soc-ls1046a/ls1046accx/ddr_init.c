@@ -182,7 +182,7 @@ enum ram_type {
 long long board_static_ddr(struct ddr_info *priv)
 {
 	int ret; 
-	enum ram_type type = RAM_TYPE_4G_2100;
+	enum ram_type type;
 	struct ddr4_spd spd;
 	unsigned char mpart[20] = {0};
 
