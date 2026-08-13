@@ -1,5 +1,5 @@
 /*
- * Copyright 2021-2022 CCX Technologies
+ * Copyright 2021-2026 CCX Technologies
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *
