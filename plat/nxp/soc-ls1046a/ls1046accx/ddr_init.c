@@ -173,52 +173,64 @@ const struct ddr_cfg_regs static_8g_3200 = {
 };
 
 
+enum ram_type {
+    RAM_TYPE_4G_2100 = 0,
+    RAM_TYPE_8G_2666,
+    RAM_TYPE_8G_3200
+};
+
 long long board_static_ddr(struct ddr_info *priv)
 {
-	int ret, size = 0;
+	int ret; 
+	enum ram_type type;
 	struct ddr4_spd spd;
 	unsigned char mpart[20] = {0};
 
 	ret = read_spd(NXP_SPD_EEPROM0, &spd, sizeof(spd));
 	if (ret) {
 		ERROR("Failed to read DIMM SPD, assuming 4G module.\n");
-		size = 4;
+		type = RAM_TYPE_4G_2100;
 	} else {
 		memcpy(mpart, &(spd.mpart), sizeof(mpart) - 1);
 		NOTICE("RAM Part Number: %s\n", mpart);
 		NOTICE("RAM Density: 0x%x\n", spd.density_banks);
 		NOTICE("RAM Addressing: 0x%x\n", spd.addressing);
+		NOTICE("RAM tCK min: 0x%x\n", spd.tck_min);
 
 		if ((spd.density_banks == 0x85) && (spd.addressing == 0x21)) {
-			size = 8;
-		} else {
-			size = 4;
-		}
+            switch (spd.tck_min) {
+            case 0x6:
+                type = RAM_TYPE_8G_2666;
+                break;
+            case 0x5:
+                type = RAM_TYPE_8G_3200;
+                break;
+            default:
+                type = RAM_TYPE_4G_2100;
+                break;
+            }
+        } else {
+            type = RAM_TYPE_4G_2100;
+        }
 	}
 
-	if (size == 4) {
-		NOTICE("RAM Size: 4G\n");
-		memcpy(&priv->ddr_reg, &static_4g_2100, sizeof(struct ddr_cfg_regs));
-		return 0x100000000UL;
-	} else if (size == 8) {
-		NOTICE("RAM Size: 8G\n");
+	switch (type) {
+    case RAM_TYPE_8G_2666:
+        NOTICE("RAM Type: 8GB DDR4-2666\n");
+        memcpy(&priv->ddr_reg, &static_8g_2666, sizeof(struct ddr_cfg_regs));
+        return 0x200000000UL;
 
-		if (spd.tck_min == 0x6) {
-			NOTICE("RAM Speed: 2666 MT/s\n");
-			memcpy(&priv->ddr_reg, &static_8g_2666, sizeof(struct ddr_cfg_regs));
-		} else if (spd.tck_min == 0x5) {
-			NOTICE("RAM Speed: 3200 MT/s\n");
-			memcpy(&priv->ddr_reg, &static_8g_3200, sizeof(struct ddr_cfg_regs));
-		} else {
-			ERROR("Unknown RAM Speed (tck_min: 0x%x)\n", spd.tck_min);
-			return 0;
-		}
+    case RAM_TYPE_8G_3200:
+        NOTICE("RAM Type: 8GB DDR4-3200\n");
+        memcpy(&priv->ddr_reg, &static_8g_3200, sizeof(struct ddr_cfg_regs));
+        return 0x200000000UL;
 
-		return 0x200000000UL;
-	} else {
-		ERROR("Unkown RAM Size %d\n", size);
-		return 0;
-	}
+    case RAM_TYPE_4G_2100:
+    default:
+        NOTICE("RAM Type: 4GB DDR4-2100\n");
+        memcpy(&priv->ddr_reg, &static_4g_2100, sizeof(struct ddr_cfg_regs));
+        return 0x100000000UL;
+    }
 }
 
 long long init_ddr(void)
