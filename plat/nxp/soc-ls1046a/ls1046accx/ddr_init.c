@@ -228,6 +228,7 @@ long long board_static_ddr(struct ddr_info *priv)
 		return 0x200000000UL;
 
 	case RAM_TYPE_4G_2100:
+	default:
 		NOTICE("RAM Type: 4GB DDR4-2100\n");
 		memcpy(&priv->ddr_reg, &static_4g_2100, sizeof(struct ddr_cfg_regs));
 		return 0x100000000UL;
